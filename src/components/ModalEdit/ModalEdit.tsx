@@ -8,6 +8,7 @@ import {
   InputWrapper,
   TextArea,
 } from "../Modal/Modal.styles";
+import { useNavigate } from "react-router-dom";
 
 interface ModalProps {
   show: boolean;
@@ -15,23 +16,30 @@ interface ModalProps {
   credentialId: number | null;
 }
 
-export const ModalEdit: React.FC<ModalProps> = ({
-  show,
-  onClose,
-  credentialId,
-}) => {
+export const ModalEdit: React.FC<ModalProps> = ({ onClose, credentialId }) => {
   const [title, setTitle] = useState("");
   const [credentialUser, setCredentialUser] = useState("");
   const [description, setDescription] = useState("");
   const [credentialPass, setCredentialPass] = useState("");
-  const userId = 1;
+  const userId = Number(localStorage.getItem("UserId"));
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  if (!userId && !token) {
+    navigate("/login");
+  }
 
   useEffect(() => {
     const fetchCredential = async () => {
       if (credentialId !== null) {
         try {
           const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/credential/${credentialId}`
+            `${process.env.REACT_APP_API_URL}/credential/${credentialId}`,
+            {
+              headers: {
+                Authorization: "Bearer " + token,
+              },
+            }
           );
           const data = await response.json();
           setTitle(data.title);
@@ -47,7 +55,7 @@ export const ModalEdit: React.FC<ModalProps> = ({
     if (credentialId !== null) {
       fetchCredential();
     }
-  }, [credentialId]);
+  }, [credentialId, userId, token]);
 
   const handleOverlayClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget) {
@@ -74,6 +82,7 @@ export const ModalEdit: React.FC<ModalProps> = ({
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
           },
           body: JSON.stringify(body),
         }
@@ -89,6 +98,33 @@ export const ModalEdit: React.FC<ModalProps> = ({
       onClose();
     } catch (error) {
       console.error("Error al guardar la credencial:", error);
+    }
+  };
+
+  const handleDelete = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/credential/${credentialId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar la credencial");
+      }
+
+      window.location.reload();
+      onClose();
+    } catch (error) {
+      console.error("Error al eliminar la credencial:", error);
     }
   };
 
@@ -142,9 +178,21 @@ export const ModalEdit: React.FC<ModalProps> = ({
               ></TextArea>
             </div>
           </div>
-          <Button type="submit" onClick={handleSubmit}>
-            + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Guardar Credencial
-          </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <Button type="submit" onClick={handleSubmit}>
+              Guardar Credencial
+            </Button>
+            <Button type="button" onClick={handleDelete}>
+              Eliminar Credencial
+            </Button>
+          </div>
         </form>
       </ModalContent>
     </ModalOverlay>

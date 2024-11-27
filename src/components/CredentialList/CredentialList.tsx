@@ -4,32 +4,58 @@ import CredentialItem, {
   CredentialItemProps,
 } from "../CredentialItem/CredentialItem";
 import { ModalEdit } from "../ModalEdit/ModalEdit";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const CredentialList: React.FC = () => {
+interface CredentialListProps {
+  searchTerm: string;
+}
+
+const CredentialList: React.FC<CredentialListProps> = ({ searchTerm }) => {
   const [credentials, setCredentials] = useState<CredentialItemProps[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCredentialId, setSelectedCredentialId] = useState<
     number | null
   >(null);
+  const navigate = useNavigate();
+
+  const userId = Number(localStorage.getItem("UserId"));
+  const token = localStorage.getItem("token");
+
+  if (!userId && !token) {
+    navigate("/login");
+  }
 
   useEffect(() => {
     const fetchCredentials = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/credentials`,
+        const response = await fetch(
+          `${
+            process.env.REACT_APP_API_URL
+          }/credentials?search=${encodeURIComponent(
+            searchTerm
+          )}&user_id=${userId}`,
           {
-            withCredentials: false,
+            method: "GET",
+
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
           }
         );
-        setCredentials(response.data);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setCredentials(data);
       } catch (error) {
         console.error("Error fetching credentials:", error);
       }
     };
-
     fetchCredentials();
-  }, []);
+  }, [searchTerm, userId, token]);
 
   const handleEdit = (id: number) => {
     setSelectedCredentialId(id);

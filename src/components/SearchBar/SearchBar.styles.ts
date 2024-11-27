@@ -59,7 +59,6 @@ export const Button = styled.button`
   cursor: pointer;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s;
-  width: 100%;
   max-width: 300px; /* Puedes ajustar el tamaño del botón aquí */
 
   &:hover {

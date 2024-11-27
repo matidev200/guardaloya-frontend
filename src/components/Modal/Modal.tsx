@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Button } from "../SearchBar/SearchBar.styles";
 import {
   ModalOverlay,
@@ -9,6 +8,7 @@ import {
   InputWrapper,
   TextArea,
 } from "./Modal.styles";
+import { useNavigate } from "react-router-dom";
 
 interface ModalProps {
   show: boolean;
@@ -20,7 +20,13 @@ export const Modal: React.FC<ModalProps> = ({ show, onClose }) => {
   const [credentialUser, setCredentialUser] = useState("");
   const [description, setDescription] = useState("");
   const [credentialPass, setCredentialPass] = useState("");
-  const userId = 1;
+  const userId = Number(localStorage.getItem("UserId"));
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  if (!userId && !token) {
+    navigate("/login");
+  }
 
   if (!show) {
     return null;
@@ -51,6 +57,7 @@ export const Modal: React.FC<ModalProps> = ({ show, onClose }) => {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
           },
           body: JSON.stringify(body),
         }
