@@ -65,7 +65,7 @@ const RegisterForm: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit">Acceder</Button>
+          <Button type="submit">Registrarse</Button>
         </Form>
         <RegisterText>
           Si ya tenés una cuenta, podés ingresar <a href="/login">aquí</a>
